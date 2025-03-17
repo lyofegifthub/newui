@@ -1,0 +1,207 @@
+-- Fluent_UI_Code.lua
+-- Versi Minimal untuk mendukung fungsi dasar yang digunakan di menu Anda.
+-- Anda bisa mengembangkannya lebih lanjut sesuai kebutuhan.
+local Fluent = {}
+Fluent.Version = "1.1.0"
+
+-- CreateWindow: Membuat ScreenGui dan window dasar
+function Fluent:CreateWindow(options)
+    options = options or {}
+    local window = {}
+    window.Title = options.Title or "Window"
+    window.SubTitle = options.SubTitle or ""
+    window.TabWidth = options.TabWidth or 160
+    window.Size = options.Size or UDim2.fromOffset(580, 460)
+    window.Acrylic = options.Acrylic or false
+    window.Theme = options.Theme or "Dark"
+    window.MinimizeKey = options.MinimizeKey or Enum.KeyCode.LeftControl
+    window.Tabs = {}
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FluentUI"
+    screenGui.Parent = game:GetService("CoreGui")
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = window.Size
+    mainFrame.Position = UDim2.new(0.5, -window.Size.X.Offset/2, 0.5, -window.Size.Y.Offset/2)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = window.Title .. " - " .. window.SubTitle
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.TextScaled = true
+    titleLabel.Parent = mainFrame
+
+    local tabBar = Instance.new("Frame")
+    tabBar.Size = UDim2.new(0, window.TabWidth, 1, -30)
+    tabBar.Position = UDim2.new(0, 0, 0, 30)
+    tabBar.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+    tabBar.Parent = mainFrame
+
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Size = UDim2.new(1, -window.TabWidth, 1, -30)
+    contentFrame.Position = UDim2.new(0, window.TabWidth, 0, 30)
+    contentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    contentFrame.Parent = mainFrame
+
+    window.ScreenGui = screenGui
+    window.MainFrame = mainFrame
+    window.TabBar = tabBar
+    window.ContentFrame = contentFrame
+
+    function window:AddTab(tabOptions)
+        tabOptions = tabOptions or {}
+        local tab = {}
+        tab.Title = tabOptions.Title or "Tab"
+        tab.Icon = tabOptions.Icon or ""
+        tab.Elements = {}
+
+        local tabButton = Instance.new("TextButton")
+        tabButton.Size = UDim2.new(1, 0, 0, 30)
+        tabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        tabButton.Text = tab.Title
+        tabButton.TextColor3 = Color3.new(1, 1, 1)
+        tabButton.Parent = window.TabBar
+        tab.Button = tabButton
+
+        local tabContent = Instance.new("ScrollingFrame")
+        tabContent.Size = UDim2.new(1, 0, 1, 0)
+        tabContent.BackgroundTransparency = 1
+        tabContent.Visible = false
+        tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+        tabContent.Parent = window.ContentFrame
+        tab.Content = tabContent
+
+        tabButton.MouseButton1Click:Connect(function()
+            for _, t in ipairs(window.Tabs) do
+                if t.Content then t.Content.Visible = false end
+            end
+            tabContent.Visible = true
+            print("Tab '" .. tab.Title .. "' selected.")
+        end)
+
+        table.insert(window.Tabs, tab)
+        return tab
+    end
+
+    function window:SelectTab(index)
+        if window.Tabs[index] and window.Tabs[index].Button then
+            window.Tabs[index].Button:Activate()
+        end
+    end
+
+    function window:Notify(notifOptions)
+        notifOptions = notifOptions or {}
+        print("Notification: " .. (notifOptions.Title or "No Title") .. " - " .. (notifOptions.Content or ""))
+    end
+
+    self.Window = window  -- simpan referensi ke window dalam Fluent
+    return window
+end
+
+-- Fungsi dasar untuk menambahkan elemen ke dalam tab
+local function addElement(tab, elementType, options)
+    options = options or {}
+    if elementType == "Paragraph" then
+        local lbl = Instance.new("TextLabel")
+        lbl.Text = options.Title .. "\n" .. (options.Content or "")
+        lbl.Size = UDim2.new(1, 0, 0, 50)
+        lbl.BackgroundTransparency = 1
+        lbl.TextColor3 = Color3.new(1, 1, 1)
+        lbl.TextScaled = true
+        lbl.Parent = tab.Content
+        table.insert(tab.Elements, lbl)
+    elseif elementType == "Button" then
+        local btn = Instance.new("TextButton")
+        btn.Text = options.Title or "Button"
+        btn.Size = UDim2.new(1, 0, 0, 30)
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Parent = tab.Content
+        btn.MouseButton1Click:Connect(options.Callback or function() print(options.Title .. " clicked!") end)
+        table.insert(tab.Elements, btn)
+    elseif elementType == "Slider" then
+        local slider = Instance.new("TextButton")
+        slider.Text = options.Title or "Slider"
+        slider.Size = UDim2.new(1, 0, 0, 30)
+        slider.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        slider.TextColor3 = Color3.new(1, 1, 1)
+        slider.Parent = tab.Content
+        slider.MouseButton1Click:Connect(options.Callback or function() print(options.Title .. " slider changed!") end)
+        table.insert(tab.Elements, slider)
+    elseif elementType == "Toggle" then
+        local toggle = Instance.new("TextButton")
+        toggle.Text = options.Title or "Toggle"
+        toggle.Size = UDim2.new(1, 0, 0, 30)
+        toggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        toggle.TextColor3 = Color3.new(1, 1, 1)
+        toggle.Parent = tab.Content
+        toggle.MouseButton1Click:Connect(options.Callback or function() print(options.Title .. " toggled!") end)
+        table.insert(tab.Elements, toggle)
+    elseif elementType == "TextBox" then
+        local textbox = Instance.new("TextBox")
+        textbox.Text = options.Default or ""
+        textbox.PlaceholderText = options.Placeholder or ""
+        textbox.Size = UDim2.new(1, 0, 0, 30)
+        textbox.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
+        textbox.TextColor3 = Color3.new(1, 1, 1)
+        textbox.Parent = tab.Content
+        textbox.FocusLost:Connect(function()
+            if options.Callback then options.Callback(textbox.Text) end
+        end)
+        table.insert(tab.Elements, textbox)
+    elseif elementType == "Keybind" then
+        local keybind = Instance.new("TextButton")
+        keybind.Text = options.Title or "Keybind"
+        keybind.Size = UDim2.new(1, 0, 0, 30)
+        keybind.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        keybind.TextColor3 = Color3.new(1, 1, 1)
+        keybind.Parent = tab.Content
+        keybind.MouseButton1Click:Connect(options.Callback or function() print(options.Title .. " keybind clicked!") end)
+        table.insert(tab.Elements, keybind)
+    elseif elementType == "Colorpicker" then
+        local cp = Instance.new("TextButton")
+        cp.Text = options.Title or "Colorpicker"
+        cp.Size = UDim2.new(1, 0, 0, 30)
+        cp.BackgroundColor3 = options.Default or Color3.new(1, 1, 1)
+        cp.TextColor3 = Color3.new(0, 0, 0)
+        cp.Parent = tab.Content
+        cp.MouseButton1Click:Connect(options.Callback or function() print(options.Title .. " colorpicker changed!") end)
+        table.insert(tab.Elements, cp)
+    end
+end
+
+-- Tambahkan fungsi ke Fluent untuk mempermudah pemanggilan elemen
+function Fluent:AddParagraph(tab, options)
+    addElement(tab, "Paragraph", options)
+end
+
+function Fluent:AddButton(tab, options)
+    addElement(tab, "Button", options)
+end
+
+function Fluent:AddSlider(tab, options)
+    addElement(tab, "Slider", options)
+end
+
+function Fluent:AddToggle(tab, options)
+    addElement(tab, "Toggle", options)
+end
+
+function Fluent:AddTextBox(tab, options)
+    addElement(tab, "TextBox", options)
+end
+
+function Fluent:AddKeybind(tab, options)
+    addElement(tab, "Keybind", options)
+end
+
+function Fluent:AddColorpicker(tab, options)
+    addElement(tab, "Colorpicker", options)
+end
+
+return Fluent
