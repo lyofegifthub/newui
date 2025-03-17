@@ -1,10 +1,8 @@
--- Fluent_UI_Code.lua
--- Versi Bundled Sederhana untuk mendukung pembuatan window dan tab sesuai kebutuhan script Anda.
--- File ini bukan versi lengkap Fluent UI asli, tapi sudah mencakup fungsi-fungsi:
--- CreateWindow, AddTab, AddParagraph, AddSlider, AddToggle, AddTextBox, AddButton, SelectTab, Notify.
 
-local Fluent = {}
-Fluent.Version = "1.1.0"
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 function Fluent:CreateWindow(options)
     options = options or {}
