@@ -1,238 +1,233 @@
--- Fluent_UI_Code.lua
--- Versi minimal Fluent UI untuk mendukung pembuatan window, tab, dan elemen dasar.
--- Versi ini bisa Anda kembangkan lebih lanjut sesuai kebutuhan.
-local Fluent = {}
-Fluent.Version = "1.1.0"
+------------------------------------------------------------
+-- MainScript.lua
+-- Ganti URL di bawah dengan URL raw file Fluent_UI_Code.lua milik Anda.
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/repo/branch/Fluent_UI_Code.lua"))()
 
 ------------------------------------------------------------
--- CreateWindow: Membuat GUI utama Fluent
+-- Membuat Window Fluent
 ------------------------------------------------------------
-function Fluent:CreateWindow(options)
-    options = options or {}
-    local window = {}
-    window.Title = options.Title or "Window"
-    window.SubTitle = options.SubTitle or ""
-    window.TabWidth = options.TabWidth or 160
-    window.Size = options.Size or UDim2.fromOffset(580, 460)
-    window.Acrylic = options.Acrylic or false
-    window.Theme = options.Theme or "Dark"
-    window.MinimizeKey = options.MinimizeKey or Enum.KeyCode.LeftControl
-    window.Tabs = {}
+local Window = Fluent:CreateWindow({
+    Title = "LYO HUB",
+    SubTitle = "by lyofe",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
 
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "FluentUI"
-    screenGui.Parent = game:GetService("CoreGui")
+------------------------------------------------------------
+-- Membuat Tab untuk masing-masing kategori
+------------------------------------------------------------
+local Tabs = {
+    Player = Window:AddTab({ Title = "Player", Icon = "" }),
+    BaseMover = Window:AddTab({ Title = "Base Mover", Icon = "" }),
+    Teleporter = Window:AddTab({ Title = "Teleporter", Icon = "" }),
+    Wood = Window:AddTab({ Title = "Wood", Icon = "" }),
+    Item = Window:AddTab({ Title = "Item", Icon = "" }),
+    Slot = Window:AddTab({ Title = "Slot", Icon = "" }),
+    World = Window:AddTab({ Title = "World", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
 
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = window.Size
-    mainFrame.Position = UDim2.new(0.5, -window.Size.X.Offset/2, 0.5, -window.Size.Y.Offset/2)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = screenGui
+------------------------------------------------------------
+-- Contoh Elemen di Tab Player
+------------------------------------------------------------
+Fluent:AddParagraph(Tabs.Player, {
+    Title = "Info",
+    Content = "Owner - lyofe#0986\nDeveloper - lyofe#0986\nDiscord: https://discord.gg/jKEgFwy68Z"
+})
+Fluent:AddButton(Tabs.Player, {
+    Title = "Test Button",
+    Callback = function() print("Test Button clicked!") end
+})
+Fluent:AddSlider(Tabs.Player, {
+    Title = "WalkSpeed",
+    Callback = function(val) print("WalkSpeed set to:", val) end
+})
+Fluent:AddToggle(Tabs.Player, {
+    Title = "No Clip",
+    Default = false,
+    Callback = function(state) print("No Clip state:", state) end
+})
+Fluent:AddInput(Tabs.Player, {
+    Title = "Input",
+    Default = "Default",
+    Placeholder = "Enter text",
+    Callback = function(text) print("Input:", text) end
+})
 
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 30)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = window.Title .. " - " .. window.SubTitle
-    titleLabel.TextColor3 = Color3.new(1,1,1)
-    titleLabel.TextScaled = true
-    titleLabel.Parent = mainFrame
+------------------------------------------------------------
+-- Variabel & Fungsi Tambahan (Stub, ganti dengan fungsi asli sesuai kebutuhan)
+------------------------------------------------------------
+local DoStructure = false
+local DoGlass = false
+local DoFurniture = false
+local DoRedStone = false
+local DesiredOwner = ""
+local GivingTo = ""
+local TargetPlayer = ""
+local OldWalkSpeed = 16
+local Clip = true
+local Noclip
+local flySpeed = 1
+local globalTargetCoords = Vector3.new(0, 0, 0)
 
-    local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(0, window.TabWidth, 1, -30)
-    tabBar.Position = UDim2.new(0, 0, 0, 30)
-    tabBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    tabBar.Parent = mainFrame
-
-    local contentFrame = Instance.new("Frame")
-    contentFrame.Size = UDim2.new(1, -window.TabWidth, 1, -30)
-    contentFrame.Position = UDim2.new(0, window.TabWidth, 0, 30)
-    contentFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    contentFrame.Parent = mainFrame
-
-    window.ScreenGui = screenGui
-    window.MainFrame = mainFrame
-    window.TabBar = tabBar
-    window.ContentFrame = contentFrame
-
-    function window:AddTab(tabOptions)
-        tabOptions = tabOptions or {}
-        local tab = {}
-        tab.Title = tabOptions.Title or "Tab"
-        tab.Icon = tabOptions.Icon or ""
-        
-        -- Buat tombol di tabBar
-        local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(1, 0, 0, 30)
-        tabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        tabButton.Text = tab.Title
-        tabButton.TextColor3 = Color3.new(1,1,1)
-        tabButton.Parent = tabBar
-        tab.Button = tabButton
-
-        -- Buat frame konten untuk tab
-        local tabContent = Instance.new("ScrollingFrame")
-        tabContent.Size = UDim2.new(1, 0, 1, 0)
-        tabContent.BackgroundTransparency = 1
-        tabContent.Visible = false
-        tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-        tabContent.Parent = contentFrame
-        tab.Content = tabContent
-
-        tabButton.MouseButton1Click:Connect(function()
-            for _, t in ipairs(window.Tabs) do
-                if t.Content then t.Content.Visible = false end
+-- Contoh Fungsi Toggle Fly
+function toggleFly()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = character.HumanoidRootPart
+    if _G.FLYING then
+        if _G.BV then _G.BV:Destroy() end
+        if _G.BG then _G.BG:Destroy() end
+        _G.FLYING = false
+        print("Fly disabled")
+    else
+        _G.FLYING = true
+        _G.BV = Instance.new("BodyVelocity", hrp)
+        _G.BV.Velocity = Vector3.new(0, 0, 0)
+        _G.BV.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        _G.BG = Instance.new("BodyGyro", hrp)
+        _G.BG.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+        _G.BG.P = 1e4
+        spawn(function()
+            while _G.FLYING and character and character.Parent do
+                local direction = Vector3.new()
+                local UIS = game:GetService("UserInputService")
+                if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + workspace.CurrentCamera.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - workspace.CurrentCamera.CFrame.LookVector end
+                if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - workspace.CurrentCamera.CFrame.RightVector end
+                if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + workspace.CurrentCamera.CFrame.RightVector end
+                _G.BV.Velocity = direction * flySpeed
+                _G.BG.CFrame = workspace.CurrentCamera.CFrame
+                wait()
             end
-            tabContent.Visible = true
-            print("Tab selected: " .. tab.Title)
         end)
-        table.insert(window.Tabs, tab)
-        return tab
+        print("Fly enabled")
     end
+end
 
-    function window:SelectTab(index)
-        if window.Tabs[index] then
-            window.Tabs[index].Button:Activate()
+-- Contoh Fungsi noclip dan clip
+function noclipFunc()
+    Clip = false
+    local function Nocl()
+        local character = game.Players.LocalPlayer.Character
+        if not Clip and character then
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") and v.CanCollide then
+                    v.CanCollide = false
+                end
+            end
         end
+        wait(0.21)
     end
+    Noclip = game:GetService("RunService").Stepped:Connect(Nocl)
+end
 
-    function window:Notify(notifOptions)
-        notifOptions = notifOptions or {}
-        print("Notification: " .. (notifOptions.Title or "No Title") .. " - " .. (notifOptions.Content or ""))
-    end
+function clipFunc()
+    if Noclip then Noclip:Disconnect() end
+    Clip = true
+end
 
-    return window
+-- Contoh fungsi base mover (stub)
+function StartTeleportOptimized()
+    print("Base Mover: Teleporting bases...")
+    -- Ganti dengan logika asli
+end
+
+function deleteBase()
+    print("Base Mover: Deleting base...")
+    -- Ganti dengan logika asli
+end
+
+-- Contoh fungsi teleporter (stub)
+function teleportToPlayer(name)
+    print("Teleporter: Teleporting to " .. name)
+    -- Ganti dengan logika asli
+end
+
+-- Contoh fungsi Wood Tab (stub)
+function setTargetCoords()
+    print("Wood: Target coordinates set")
+end
+
+function selectPlanks()
+    print("Wood: Planks selected")
+end
+
+function continuousWoodTeleport(state)
+    print("Wood: Continuous teleport " .. tostring(state))
+end
+
+-- Contoh fungsi Item Tab (stub)
+function selectItems()
+    print("Item: Items selected")
+end
+
+function continuousItemTeleport(state)
+    print("Item: Continuous teleport " .. tostring(state))
+end
+
+-- Contoh fungsi Slot Tab (stub)
+function buyFreeLand()
+    print("Slot: Free land purchased")
+end
+
+function expandLand()
+    print("Slot: Land expanded")
+end
+
+-- Contoh fungsi World Tab (stub)
+function removeFog()
+    print("World: Fog removed")
+end
+
+function setDayMode(state)
+    print("World: Day mode set to " .. tostring(state))
 end
 
 ------------------------------------------------------------
--- Fungsi untuk menambahkan elemen ke dalam tab
+-- Menambahkan Elemen ke Tab Lain (contoh sederhana)
 ------------------------------------------------------------
-local function addElement(tab, elementType, options)
-    options = options or {}
-    local parent = tab.Content
-    if elementType == "Paragraph" then
-        local paragraph = Instance.new("TextLabel")
-        paragraph.Size = UDim2.new(1, 0, 0, 50)
-        paragraph.BackgroundTransparency = 1
-        paragraph.Text = (options.Title or "Paragraph") .. "\n" .. (options.Content or "")
-        paragraph.TextColor3 = Color3.new(1, 1, 1)
-        paragraph.TextScaled = true
-        paragraph.Parent = parent
-        return paragraph
-    elseif elementType == "Button" then
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(1, 0, 0, 30)
-        button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-        button.Text = options.Title or "Button"
-        button.TextColor3 = Color3.new(1, 1, 1)
-        button.Parent = parent
-        button.MouseButton1Click:Connect(options.Callback or function() print(button.Text .. " clicked!") end)
-        return button
-    elseif elementType == "Toggle" then
-        local toggle = Instance.new("TextButton")
-        toggle.Size = UDim2.new(1, 0, 0, 30)
-        toggle.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        local state = options.Default or false
-        toggle.Text = (options.Title or "Toggle") .. " [" .. tostring(state) .. "]"
-        toggle.TextColor3 = Color3.new(1, 1, 1)
-        toggle.Parent = parent
-        toggle.MouseButton1Click:Connect(function()
-            state = not state
-            toggle.Text = (options.Title or "Toggle") .. " [" .. tostring(state) .. "]"
-            if options.Callback then options.Callback(state) end
-        end)
-        return toggle
-    elseif elementType == "Slider" then
-        local slider = Instance.new("TextButton")
-        slider.Size = UDim2.new(1, 0, 0, 30)
-        slider.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
-        slider.Text = options.Title or "Slider"
-        slider.TextColor3 = Color3.new(1, 1, 1)
-        slider.Parent = parent
-        slider.MouseButton1Click:Connect(options.Callback or function() print(slider.Text .. " slider clicked!") end)
-        return slider
-    elseif elementType == "Dropdown" then
-        local dropdown = Instance.new("TextButton")
-        dropdown.Size = UDim2.new(1, 0, 0, 30)
-        dropdown.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-        dropdown.Text = options.Title or "Dropdown"
-        dropdown.TextColor3 = Color3.new(1, 1, 1)
-        dropdown.Parent = parent
-        dropdown.MouseButton1Click:Connect(options.Callback or function() print(dropdown.Text .. " dropdown clicked!") end)
-        return dropdown
-    elseif elementType == "Colorpicker" then
-        local cp = Instance.new("TextButton")
-        cp.Size = UDim2.new(1, 0, 0, 30)
-        cp.BackgroundColor3 = options.Default or Color3.new(1, 1, 1)
-        cp.Text = options.Title or "Colorpicker"
-        cp.TextColor3 = Color3.new(0, 0, 0)
-        cp.Parent = parent
-        cp.MouseButton1Click:Connect(options.Callback or function() print(cp.Text .. " colorpicker clicked!") end)
-        return cp
-    elseif elementType == "Keybind" then
-        local keybind = Instance.new("TextButton")
-        keybind.Size = UDim2.new(1, 0, 0, 30)
-        keybind.BackgroundColor3 = Color3.fromRGB(110, 110, 110)
-        keybind.Text = options.Title or "Keybind"
-        keybind.TextColor3 = Color3.new(1, 1, 1)
-        keybind.Parent = parent
-        keybind.MouseButton1Click:Connect(options.Callback or function() print(keybind.Text .. " keybind clicked!") end)
-        return keybind
-    elseif elementType == "Input" then
-        local input = Instance.new("TextBox")
-        input.Size = UDim2.new(1, 0, 0, 30)
-        input.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-        input.Text = options.Default or ""
-        input.PlaceholderText = options.Placeholder or "Enter text"
-        input.TextColor3 = Color3.new(1, 1, 1)
-        input.Parent = parent
-        input.FocusLost:Connect(function()
-            if options.Callback then options.Callback(input.Text) end
-        end)
-        return input
-    end
-end
+-- Base Mover Tab
+Fluent:AddInput(Tabs.BaseMover, { Title = "Base Owner", Default = "Username", Placeholder = "Enter owner", Callback = function(txt) DesiredOwner = txt end })
+Fluent:AddInput(Tabs.BaseMover, { Title = "Base Receiver", Default = "Username", Placeholder = "Enter receiver", Callback = function(txt) GivingTo = txt end })
+Fluent:AddButton(Tabs.BaseMover, { Title = "Teleport Bases", Callback = function() StartTeleportOptimized() end })
+Fluent:AddButton(Tabs.BaseMover, { Title = "Delete Base", Callback = function() deleteBase() end })
+
+-- Teleporter Tab
+Fluent:AddInput(Tabs.Teleporter, { Title = "Player Name", Placeholder = "Enter player name", Callback = function(txt) TargetPlayer = txt end })
+Fluent:AddButton(Tabs.Teleporter, { Title = "Teleport to Player", Callback = function() teleportToPlayer(TargetPlayer) end })
+
+-- Wood Tab
+Fluent:AddButton(Tabs.Wood, { Title = "Set Target Coords", Callback = function() setTargetCoords() end })
+Fluent:AddButton(Tabs.Wood, { Title = "Select Planks", Callback = function() selectPlanks() end })
+Fluent:AddButton(Tabs.Wood, { Title = "Teleport One Plank", Callback = function() print(\"Wood: Teleporting one plank...\") end })
+Fluent:AddToggle(Tabs.Wood, { Title = "Continuous Teleport", Default = false, Callback = function(state) continuousWoodTeleport(state) end })
+
+-- Item Tab
+Fluent:AddButton(Tabs.Item, { Title = "Select Item", Callback = function() selectItems() end })
+Fluent:AddButton(Tabs.Item, { Title = "Teleport Item", Callback = function() print(\"Item: Teleporting item...\") end })
+Fluent:AddToggle(Tabs.Item, { Title = "Continuous Teleport", Default = false, Callback = function(state) continuousItemTeleport(state) end })
+
+-- Slot Tab
+Fluent:AddButton(Tabs.Slot, { Title = "Free Land", Callback = function() buyFreeLand() end })
+Fluent:AddButton(Tabs.Slot, { Title = "Expand Land", Callback = function() expandLand() end })
+Fluent:AddButton(Tabs.Slot, { Title = "Sell Sign", Callback = function() print(\"Slot: Sell sign executed\") end })
+
+-- World Tab
+Fluent:AddButton(Tabs.World, { Title = "Better Graphics", Callback = function() print(\"World: Better Graphics activated\") end })
+Fluent:AddButton(Tabs.World, { Title = "Remove Fog", Callback = function() removeFog() end })
+Fluent:AddToggle(Tabs.World, { Title = "Day Mode", Default = false, Callback = function(state) setDayMode(state) end })
+
+-- Settings Tab
+Fluent:AddButton(Tabs.Settings, { Title = "Destroy GUI", Callback = function() Window.ScreenGui:Destroy() end })
+Fluent:AddButton(Tabs.Settings, { Title = "Reset Character", Callback = function() game.Players.LocalPlayer.Character:BreakJoints() end })
 
 ------------------------------------------------------------
--- API untuk menambahkan elemen ke dalam tab
+-- Notifikasi Awal & Pilih Tab Pertama
 ------------------------------------------------------------
-function Fluent:AddParagraph(tab, options)
-    return addElement(tab, "Paragraph", options)
-end
-
-function Fluent:AddButton(tab, options)
-    return addElement(tab, "Button", options)
-end
-
-function Fluent:AddToggle(tab, options)
-    return addElement(tab, "Toggle", options)
-end
-
-function Fluent:AddSlider(tab, options)
-    return addElement(tab, "Slider", options)
-end
-
-function Fluent:AddDropdown(tab, options)
-    return addElement(tab, "Dropdown", options)
-end
-
-function Fluent:AddColorpicker(tab, options)
-    return addElement(tab, "Colorpicker", options)
-end
-
-function Fluent:AddKeybind(tab, options)
-    return addElement(tab, "Keybind", options)
-end
-
-function Fluent:AddInput(tab, options)
-    return addElement(tab, "Input", options)
-end
-
-------------------------------------------------------------
--- Fungsi tambahan (stub) untuk konfigurasi
-------------------------------------------------------------
-function Fluent:LoadAutoloadConfig()
-    print("LoadAutoloadConfig stub")
-end
-
-return Fluent
+Fluent:Notify({ Title = "LYO HUB Loaded!", Content = "Script successfully loaded.", Duration = 5 })
+Window:SelectTab(1)
