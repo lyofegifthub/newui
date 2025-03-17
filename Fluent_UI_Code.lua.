@@ -1,6 +1,6 @@
 ------------------------------------------------------------
 -- MainScript.lua
--- Ganti URL di bawah dengan URL raw file Fluent_UI_Code.lua milik Anda.
+-- Pastikan ganti URL di bawah dengan URL raw milik file Fluent_UI_Code.lua Anda!
 local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/repo/branch/Fluent_UI_Code.lua"))()
 
 ------------------------------------------------------------
@@ -17,48 +17,21 @@ local Window = Fluent:CreateWindow({
 })
 
 ------------------------------------------------------------
--- Membuat Tab untuk masing-masing kategori
+-- Membuat Tab
 ------------------------------------------------------------
 local Tabs = {
-    Player = Window:AddTab({ Title = "Player", Icon = "" }),
-    BaseMover = Window:AddTab({ Title = "Base Mover", Icon = "" }),
-    Teleporter = Window:AddTab({ Title = "Teleporter", Icon = "" }),
-    Wood = Window:AddTab({ Title = "Wood", Icon = "" }),
-    Item = Window:AddTab({ Title = "Item", Icon = "" }),
-    Slot = Window:AddTab({ Title = "Slot", Icon = "" }),
-    World = Window:AddTab({ Title = "World", Icon = "" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Player = Window:AddTab({ Title = "Player" }),
+    BaseMover = Window:AddTab({ Title = "Base Mover" }),
+    Teleporter = Window:AddTab({ Title = "Teleporter" }),
+    Wood = Window:AddTab({ Title = "Wood" }),
+    Item = Window:AddTab({ Title = "Item" }),
+    Slot = Window:AddTab({ Title = "Slot" }),
+    World = Window:AddTab({ Title = "World" }),
+    Settings = Window:AddTab({ Title = "Settings" })
 }
 
 ------------------------------------------------------------
--- Contoh Elemen di Tab Player
-------------------------------------------------------------
-Fluent:AddParagraph(Tabs.Player, {
-    Title = "Info",
-    Content = "Owner - lyofe#0986\nDeveloper - lyofe#0986\nDiscord: https://discord.gg/jKEgFwy68Z"
-})
-Fluent:AddButton(Tabs.Player, {
-    Title = "Test Button",
-    Callback = function() print("Test Button clicked!") end
-})
-Fluent:AddSlider(Tabs.Player, {
-    Title = "WalkSpeed",
-    Callback = function(val) print("WalkSpeed set to:", val) end
-})
-Fluent:AddToggle(Tabs.Player, {
-    Title = "No Clip",
-    Default = false,
-    Callback = function(state) print("No Clip state:", state) end
-})
-Fluent:AddInput(Tabs.Player, {
-    Title = "Input",
-    Default = "Default",
-    Placeholder = "Enter text",
-    Callback = function(text) print("Input:", text) end
-})
-
-------------------------------------------------------------
--- Variabel & Fungsi Tambahan (Stub, ganti dengan fungsi asli sesuai kebutuhan)
+-- Variabel Global (contoh)
 ------------------------------------------------------------
 local DoStructure = false
 local DoGlass = false
@@ -69,11 +42,14 @@ local GivingTo = ""
 local TargetPlayer = ""
 local OldWalkSpeed = 16
 local Clip = true
-local Noclip
+local Noclip  -- koneksi noclip
 local flySpeed = 1
-local globalTargetCoords = Vector3.new(0, 0, 0)
+local globalTargetCoords = Vector3.new(0, 0, 0)  -- untuk Wood Tab
 
--- Contoh Fungsi Toggle Fly
+------------------------------------------------------------
+-- Stub Fungsi (ganti dengan logika asli dari script test 0,5 detik NEW.txt)
+------------------------------------------------------------
+-- Fungsi Toggle Fly
 function toggleFly()
     local player = game.Players.LocalPlayer
     local character = player.Character
@@ -87,7 +63,7 @@ function toggleFly()
     else
         _G.FLYING = true
         _G.BV = Instance.new("BodyVelocity", hrp)
-        _G.BV.Velocity = Vector3.new(0, 0, 0)
+        _G.BV.Velocity = Vector3.new(0,0,0)
         _G.BV.MaxForce = Vector3.new(1e5, 1e5, 1e5)
         _G.BG = Instance.new("BodyGyro", hrp)
         _G.BG.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
@@ -109,7 +85,7 @@ function toggleFly()
     end
 end
 
--- Contoh Fungsi noclip dan clip
+-- Fungsi Noclip dan Clip
 function noclipFunc()
     Clip = false
     local function Nocl()
@@ -131,103 +107,296 @@ function clipFunc()
     Clip = true
 end
 
--- Contoh fungsi base mover (stub)
+-- Fungsi Base Mover (stub)
 function StartTeleportOptimized()
     print("Base Mover: Teleporting bases...")
-    -- Ganti dengan logika asli
+    -- Logika teleport base dari test 0,5 detik NEW.txt disini
 end
 
 function deleteBase()
     print("Base Mover: Deleting base...")
-    -- Ganti dengan logika asli
+    -- Logika delete base
 end
 
--- Contoh fungsi teleporter (stub)
+-- Fungsi Teleporter (stub)
 function teleportToPlayer(name)
     print("Teleporter: Teleporting to " .. name)
-    -- Ganti dengan logika asli
+    -- Logika teleport ke pemain
 end
 
--- Contoh fungsi Wood Tab (stub)
+-- Fungsi Wood Tab (stub)
 function setTargetCoords()
     print("Wood: Target coordinates set")
+    -- Ganti dengan logika ambil posisi target
 end
 
 function selectPlanks()
     print("Wood: Planks selected")
+    -- Logika pilih plank dari PlayerModels
 end
 
 function continuousWoodTeleport(state)
-    print("Wood: Continuous teleport " .. tostring(state))
+    print("Wood: Continuous teleport state = " .. tostring(state))
+    -- Logika auto teleport plank jika state = true
 end
 
--- Contoh fungsi Item Tab (stub)
+-- Fungsi Item Tab (stub)
 function selectItems()
     print("Item: Items selected")
+    -- Logika pilih item dari PlayerModels
 end
 
 function continuousItemTeleport(state)
-    print("Item: Continuous teleport " .. tostring(state))
+    print("Item: Continuous teleport state = " .. tostring(state))
+    -- Logika auto teleport item jika state = true
 end
 
--- Contoh fungsi Slot Tab (stub)
+-- Fungsi Slot Tab (stub)
 function buyFreeLand()
     print("Slot: Free land purchased")
+    -- Logika pembelian free land
 end
 
 function expandLand()
     print("Slot: Land expanded")
+    -- Logika expand/upgrade land
 end
 
--- Contoh fungsi World Tab (stub)
+-- Fungsi World Tab (stub)
 function removeFog()
     print("World: Fog removed")
+    -- Logika remove fog
 end
 
 function setDayMode(state)
     print("World: Day mode set to " .. tostring(state))
+    -- Logika set day mode
 end
 
 ------------------------------------------------------------
--- Menambahkan Elemen ke Tab Lain (contoh sederhana)
+-- Mengisi Elemen UI per Tab
 ------------------------------------------------------------
--- Base Mover Tab
-Fluent:AddInput(Tabs.BaseMover, { Title = "Base Owner", Default = "Username", Placeholder = "Enter owner", Callback = function(txt) DesiredOwner = txt end })
-Fluent:AddInput(Tabs.BaseMover, { Title = "Base Receiver", Default = "Username", Placeholder = "Enter receiver", Callback = function(txt) GivingTo = txt end })
-Fluent:AddButton(Tabs.BaseMover, { Title = "Teleport Bases", Callback = function() StartTeleportOptimized() end })
-Fluent:AddButton(Tabs.BaseMover, { Title = "Delete Base", Callback = function() deleteBase() end })
 
--- Teleporter Tab
-Fluent:AddInput(Tabs.Teleporter, { Title = "Player Name", Placeholder = "Enter player name", Callback = function(txt) TargetPlayer = txt end })
-Fluent:AddButton(Tabs.Teleporter, { Title = "Teleport to Player", Callback = function() teleportToPlayer(TargetPlayer) end })
+-- PLAYER TAB
+Fluent:AddParagraph(Tabs.Player, {
+    Title = "Player Info",
+    Content = "Owner - lyofe#0986\nDeveloper - lyofe#0986\nDiscord: https://discord.gg/jKEgFwy68Z"
+})
+Fluent:AddSlider(Tabs.Player, {
+    Title = "WalkSpeed",
+    Callback = function(val) 
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
+        print("WalkSpeed set to:", val)
+    end
+})
+Fluent:AddSlider(Tabs.Player, {
+    Title = "Fly Speed",
+    Callback = function(val)
+        flySpeed = val
+        print("Fly Speed set to:", val)
+    end
+})
+Fluent:AddParagraph(Tabs.Player, {
+    Title = "Fly",
+    Content = "Tekan Q untuk toggle Fly."
+})
+Fluent:AddToggle(Tabs.Player, {
+    Title = "No Clip",
+    Default = false,
+    Callback = function(state)
+        if state then
+            noclipFunc()
+        else
+            clipFunc()
+        end
+    end
+})
+Fluent:AddInput(Tabs.Player, {
+    Title = "Input",
+    Default = "Default",
+    Placeholder = "Masukkan teks...",
+    Callback = function(text)
+        print("Input:", text)
+    end
+})
 
--- Wood Tab
-Fluent:AddButton(Tabs.Wood, { Title = "Set Target Coords", Callback = function() setTargetCoords() end })
-Fluent:AddButton(Tabs.Wood, { Title = "Select Planks", Callback = function() selectPlanks() end })
-Fluent:AddButton(Tabs.Wood, { Title = "Teleport One Plank", Callback = function() print(\"Wood: Teleporting one plank...\") end })
-Fluent:AddToggle(Tabs.Wood, { Title = "Continuous Teleport", Default = false, Callback = function(state) continuousWoodTeleport(state) end })
+-- BASE MOVER TAB
+Fluent:AddInput(Tabs.BaseMover, {
+    Title = "Base Owner",
+    Default = "Username",
+    Placeholder = "Masukkan base owner",
+    Callback = function(txt)
+        DesiredOwner = txt
+        print("DesiredOwner:", txt)
+    end
+})
+Fluent:AddInput(Tabs.BaseMover, {
+    Title = "Base Receiver",
+    Default = "Username",
+    Placeholder = "Masukkan base receiver",
+    Callback = function(txt)
+        GivingTo = txt
+        print("GivingTo:", txt)
+    end
+})
+Fluent:AddButton(Tabs.BaseMover, {
+    Title = "Teleport Bases",
+    Callback = function()
+        print("=== MULAI TELEPORT BASES ===")
+        StartTeleportOptimized()
+        print("=== SELESAI TELEPORT BASES ===")
+    end
+})
+Fluent:AddButton(Tabs.BaseMover, {
+    Title = "Delete Base",
+    Callback = function()
+        deleteBase()
+    end
+})
 
--- Item Tab
-Fluent:AddButton(Tabs.Item, { Title = "Select Item", Callback = function() selectItems() end })
-Fluent:AddButton(Tabs.Item, { Title = "Teleport Item", Callback = function() print(\"Item: Teleporting item...\") end })
-Fluent:AddToggle(Tabs.Item, { Title = "Continuous Teleport", Default = false, Callback = function(state) continuousItemTeleport(state) end })
+-- TELEPORTER TAB
+Fluent:AddInput(Tabs.Teleporter, {
+    Title = "Player to Teleport To",
+    Default = "",
+    Placeholder = "Masukkan nama pemain",
+    Callback = function(txt)
+        TargetPlayer = txt
+    end
+})
+Fluent:AddButton(Tabs.Teleporter, {
+    Title = "Teleport to Player",
+    Callback = function()
+        teleportToPlayer(TargetPlayer)
+    end
+})
 
--- Slot Tab
-Fluent:AddButton(Tabs.Slot, { Title = "Free Land", Callback = function() buyFreeLand() end })
-Fluent:AddButton(Tabs.Slot, { Title = "Expand Land", Callback = function() expandLand() end })
-Fluent:AddButton(Tabs.Slot, { Title = "Sell Sign", Callback = function() print(\"Slot: Sell sign executed\") end })
+-- WOOD TAB
+Fluent:AddButton(Tabs.Wood, {
+    Title = "Set Target Coords",
+    Callback = function()
+        setTargetCoords()
+    end
+})
+Fluent:AddButton(Tabs.Wood, {
+    Title = "Select Planks",
+    Callback = function()
+        selectPlanks()
+    end
+})
+Fluent:AddButton(Tabs.Wood, {
+    Title = "Teleport One Plank",
+    Callback = function()
+        print("Wood: Teleporting one plank...")
+        -- Ganti dengan logika teleport satu plank
+    end
+})
+Fluent:AddToggle(Tabs.Wood, {
+    Title = "Continuous Teleport",
+    Default = false,
+    Callback = function(state)
+        continuousWoodTeleport(state)
+    end
+})
 
--- World Tab
-Fluent:AddButton(Tabs.World, { Title = "Better Graphics", Callback = function() print(\"World: Better Graphics activated\") end })
-Fluent:AddButton(Tabs.World, { Title = "Remove Fog", Callback = function() removeFog() end })
-Fluent:AddToggle(Tabs.World, { Title = "Day Mode", Default = false, Callback = function(state) setDayMode(state) end })
+-- ITEM TAB
+Fluent:AddButton(Tabs.Item, {
+    Title = "Select Item",
+    Callback = function()
+        selectItems()
+    end
+})
+Fluent:AddButton(Tabs.Item, {
+    Title = "Teleport Item",
+    Callback = function()
+        print("Item: Teleporting one item...")
+        DragAndMoveOneItem()
+    end
+})
+Fluent:AddToggle(Tabs.Item, {
+    Title = "Continuous Teleport",
+    Default = false,
+    Callback = function(state)
+        continuousItemTeleport(state)
+    end
+})
 
--- Settings Tab
-Fluent:AddButton(Tabs.Settings, { Title = "Destroy GUI", Callback = function() Window.ScreenGui:Destroy() end })
-Fluent:AddButton(Tabs.Settings, { Title = "Reset Character", Callback = function() game.Players.LocalPlayer.Character:BreakJoints() end })
+-- SLOT TAB
+Fluent:AddButton(Tabs.Slot, {
+    Title = "Free Land",
+    Callback = function()
+        buyFreeLand()
+    end
+})
+Fluent:AddButton(Tabs.Slot, {
+    Title = "Expand Land",
+    Callback = function()
+        expandLand()
+    end
+})
+Fluent:AddButton(Tabs.Slot, {
+    Title = "Sell Sign",
+    Callback = function()
+        print("Slot: Sell sign executed")
+        -- Ganti dengan logika sell sign
+    end
+})
+
+-- WORLD TAB
+Fluent:AddButton(Tabs.World, {
+    Title = "Better Graphics",
+    Callback = function()
+        print("World: Better Graphics activated")
+        -- Ganti dengan logika better graphics
+    end
+})
+Fluent:AddButton(Tabs.World, {
+    Title = "Remove Fog",
+    Callback = function()
+        removeFog()
+    end
+})
+Fluent:AddToggle(Tabs.World, {
+    Title = "Day Mode",
+    Default = false,
+    Callback = function(state)
+        setDayMode(state)
+    end
+})
+
+-- SETTINGS TAB
+Fluent:AddButton(Tabs.Settings, {
+    Title = "Destroy GUI",
+    Callback = function()
+        Window.ScreenGui:Destroy()
+        print("GUI destroyed!")
+    end
+})
+Fluent:AddButton(Tabs.Settings, {
+    Title = "Reset Character",
+    Callback = function()
+        game.Players.LocalPlayer.Character:BreakJoints()
+    end
+})
 
 ------------------------------------------------------------
--- Notifikasi Awal & Pilih Tab Pertama
+-- SaveManager & InterfaceManager (Opsional; jika error, komentar baris BuildInterfaceSection & BuildConfigSection)
 ------------------------------------------------------------
-Fluent:Notify({ Title = "LYO HUB Loaded!", Content = "Script successfully loaded.", Duration = 5 })
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+InterfaceManager:SetFolder("LYOHUB")
+SaveManager:SetFolder("LYOHUB/specific-game")
+-- Jika muncul error, komentar baris di bawah ini:
+-- InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+-- SaveManager:BuildConfigSection(Tabs.Settings)
+
+------------------------------------------------------------
+-- Notifikasi Saat Script Dimuat & Pilih Tab Pertama
+------------------------------------------------------------
+Fluent:Notify({
+    Title = "LYO HUB Loaded!",
+    Content = "Successfully loaded the script.",
+    Duration = 5
+})
 Window:SelectTab(1)
