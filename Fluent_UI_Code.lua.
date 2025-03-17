@@ -1,37 +1,61 @@
-------------------------------------------------------------
--- MainScript.lua
--- Pastikan ganti URL di bawah dengan URL raw milik file Fluent_UI_Code.lua Anda!
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/repo/branch/Fluent_UI_Code.lua"))()
+--[[
+    Fluent_UI_Full.lua
+    Versi lengkap untuk LYO HUB menggunakan Fluent UI.
+    Pastikan Anda sudah memiliki struktur Workspace yang benar:
+      - Workspace.PlayerModels: tempat objek-objek base/item milik player
+      - Workspace.Properties: tempat base property
+    Pastikan juga konfigurasi HWID dan URL Fluent sudah sesuai.
+ 
+    Cara Pakai:
+    1. Simpan file ini sebagai "Fluent_UI_Full.lua" (atau nama lain).
+    2. Panggil dengan:
+         local LYOHUB = loadstring(game:HttpGet("URL_FLUENT_UI_FULL"))()
+       (atau jika Anda menggunakannya secara lokal, require file tersebut.)
+    3. Jalankan skrip tersebut.
+ 
+    Jika ada error, pastikan semua folder dan objek di Workspace sudah tersedia.
+--]]
 
 ------------------------------------------------------------
--- Membuat Window Fluent
+-- LOAD FLUENT UI & ADDONS (gunakan file release Fluent)
 ------------------------------------------------------------
-local Window = Fluent:CreateWindow({
-    Title = "LYO HUB",
-    SubTitle = "by lyofe",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/lyofegifthub/newui/refs/heads/main/Fluent_UI_Code.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 ------------------------------------------------------------
--- Membuat Tab
+-- HWID CHECK (sesuaikan jika diperlukan)
 ------------------------------------------------------------
-local Tabs = {
-    Player = Window:AddTab({ Title = "Player" }),
-    BaseMover = Window:AddTab({ Title = "Base Mover" }),
-    Teleporter = Window:AddTab({ Title = "Teleporter" }),
-    Wood = Window:AddTab({ Title = "Wood" }),
-    Item = Window:AddTab({ Title = "Item" }),
-    Slot = Window:AddTab({ Title = "Slot" }),
-    World = Window:AddTab({ Title = "World" }),
-    Settings = Window:AddTab({ Title = "Settings" })
-}
+local function fetchHWIDList()
+    local success, HWIDTable = pcall(function()
+        return loadstring(game:HttpGet("https://pastebin.com/raw/Jn0dKnUR"))()
+    end)
+    if not success or type(HWIDTable) ~= "table" then
+        warn("❌ Failed to load HWIDTable. Check the Pastebin link.")
+        return nil
+    end
+    return HWIDTable
+end
+
+local HWIDTable = fetchHWIDList()
+if not HWIDTable then return end
+
+local HWID = game:GetService("RbxAnalyticsService"):GetClientId()
+local isWhitelisted = false
+for _, v in pairs(HWIDTable) do
+    if HWID == v then
+        isWhitelisted = true
+        break
+    end
+end
+if not isWhitelisted then
+    warn("❌ Your HWID is NOT whitelisted! Contact the script owner.")
+    return
+end
+print("✅ Your HWID is Whitelisted!")
 
 ------------------------------------------------------------
--- Variabel Global (contoh)
+-- VARIABEL DAN FUNGSIONALITAS DASAR
 ------------------------------------------------------------
 local DoStructure = false
 local DoGlass = false
@@ -42,42 +66,43 @@ local GivingTo = ""
 local TargetPlayer = ""
 local OldWalkSpeed = 16
 local Clip = true
-local Noclip  -- koneksi noclip
-local flySpeed = 1
-local globalTargetCoords = Vector3.new(0, 0, 0)  -- untuk Wood Tab
+local Noclip -- koneksi noclip
+local flySpeed = 1  -- nilai default fly speed
+local globalTargetCoords = Vector3.new(0, 0, 0) -- untuk tab Wood
 
 ------------------------------------------------------------
--- Stub Fungsi (ganti dengan logika asli dari script test 0,5 detik NEW.txt)
-------------------------------------------------------------
 -- Fungsi Toggle Fly
-function toggleFly()
+------------------------------------------------------------
+local FLYING = false
+local BV, BG
+local function toggleFly()
     local player = game.Players.LocalPlayer
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = character.HumanoidRootPart
-    if _G.FLYING then
-        if _G.BV then _G.BV:Destroy() end
-        if _G.BG then _G.BG:Destroy() end
-        _G.FLYING = false
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if FLYING then
+        if BV then BV:Destroy() end
+        if BG then BG:Destroy() end
+        FLYING = false
         print("Fly disabled")
     else
-        _G.FLYING = true
-        _G.BV = Instance.new("BodyVelocity", hrp)
-        _G.BV.Velocity = Vector3.new(0,0,0)
-        _G.BV.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-        _G.BG = Instance.new("BodyGyro", hrp)
-        _G.BG.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-        _G.BG.P = 1e4
+        FLYING = true
+        BV = Instance.new("BodyVelocity", hrp)
+        BV.Velocity = Vector3.new(0,0,0)
+        BV.MaxForce = Vector3.new(1e5,1e5,1e5)
+        BG = Instance.new("BodyGyro", hrp)
+        BG.MaxTorque = Vector3.new(1e5,1e5,1e5)
+        BG.P = 1e4
         spawn(function()
-            while _G.FLYING and character and character.Parent do
+            while FLYING and character and character.Parent do
                 local direction = Vector3.new()
                 local UIS = game:GetService("UserInputService")
                 if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + workspace.CurrentCamera.CFrame.LookVector end
                 if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - workspace.CurrentCamera.CFrame.LookVector end
                 if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - workspace.CurrentCamera.CFrame.RightVector end
                 if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + workspace.CurrentCamera.CFrame.RightVector end
-                _G.BV.Velocity = direction * flySpeed
-                _G.BG.CFrame = workspace.CurrentCamera.CFrame
+                BV.Velocity = direction * flySpeed
+                BG.CFrame = workspace.CurrentCamera.CFrame
                 wait()
             end
         end)
@@ -85,8 +110,10 @@ function toggleFly()
     end
 end
 
--- Fungsi Noclip dan Clip
-function noclipFunc()
+------------------------------------------------------------
+-- Fungsi noclip & clip
+------------------------------------------------------------
+local function noclipFunc()
     Clip = false
     local function Nocl()
         local character = game.Players.LocalPlayer.Character
@@ -102,301 +129,700 @@ function noclipFunc()
     Noclip = game:GetService("RunService").Stepped:Connect(Nocl)
 end
 
-function clipFunc()
+local function clipFunc()
     if Noclip then Noclip:Disconnect() end
     Clip = true
 end
 
--- Fungsi Base Mover (stub)
-function StartTeleportOptimized()
-    print("Base Mover: Teleporting bases...")
-    -- Logika teleport base dari test 0,5 detik NEW.txt disini
-end
-
-function deleteBase()
-    print("Base Mover: Deleting base...")
-    -- Logika delete base
-end
-
--- Fungsi Teleporter (stub)
-function teleportToPlayer(name)
-    print("Teleporter: Teleporting to " .. name)
-    -- Logika teleport ke pemain
-end
-
--- Fungsi Wood Tab (stub)
-function setTargetCoords()
-    print("Wood: Target coordinates set")
-    -- Ganti dengan logika ambil posisi target
-end
-
-function selectPlanks()
-    print("Wood: Planks selected")
-    -- Logika pilih plank dari PlayerModels
-end
-
-function continuousWoodTeleport(state)
-    print("Wood: Continuous teleport state = " .. tostring(state))
-    -- Logika auto teleport plank jika state = true
-end
-
--- Fungsi Item Tab (stub)
-function selectItems()
-    print("Item: Items selected")
-    -- Logika pilih item dari PlayerModels
-end
-
-function continuousItemTeleport(state)
-    print("Item: Continuous teleport state = " .. tostring(state))
-    -- Logika auto teleport item jika state = true
-end
-
--- Fungsi Slot Tab (stub)
-function buyFreeLand()
-    print("Slot: Free land purchased")
-    -- Logika pembelian free land
-end
-
-function expandLand()
-    print("Slot: Land expanded")
-    -- Logika expand/upgrade land
-end
-
--- Fungsi World Tab (stub)
-function removeFog()
-    print("World: Fog removed")
-    -- Logika remove fog
-end
-
-function setDayMode(state)
-    print("World: Day mode set to " .. tostring(state))
-    -- Logika set day mode
-end
-
 ------------------------------------------------------------
--- Mengisi Elemen UI per Tab
+-- Fungsi StartTeleportOptimized (untuk Base Mover)
 ------------------------------------------------------------
-
--- PLAYER TAB
-Fluent:AddParagraph(Tabs.Player, {
-    Title = "Player Info",
-    Content = "Owner - lyofe#0986\nDeveloper - lyofe#0986\nDiscord: https://discord.gg/jKEgFwy68Z"
-})
-Fluent:AddSlider(Tabs.Player, {
-    Title = "WalkSpeed",
-    Callback = function(val) 
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
-        print("WalkSpeed set to:", val)
-    end
-})
-Fluent:AddSlider(Tabs.Player, {
-    Title = "Fly Speed",
-    Callback = function(val)
-        flySpeed = val
-        print("Fly Speed set to:", val)
-    end
-})
-Fluent:AddParagraph(Tabs.Player, {
-    Title = "Fly",
-    Content = "Tekan Q untuk toggle Fly."
-})
-Fluent:AddToggle(Tabs.Player, {
-    Title = "No Clip",
-    Default = false,
-    Callback = function(state)
-        if state then
-            noclipFunc()
+local Count = 0
+local function StartTeleportOptimized()
+    local X, Y, Z = 0, 0, 0
+    local function GetOffset()
+        local Properties = game.Workspace:FindFirstChild("Properties")
+        local OriginSquare1, OriginSquare2
+        local trimmedOwner = (DesiredOwner or ""):gsub("^%s*(.-)%s*$", "%1")
+        local trimmedReceiver = (GivingTo or ""):gsub("^%s*(.-)%s*$", "%1")
+        if Properties then
+            for _, plot in ipairs(Properties:GetChildren()) do
+                if plot:FindFirstChild("Owner") and plot:FindFirstChild("OriginSquare") then
+                    local foundOwner = tostring(plot.Owner.Value):gsub("^%s*(.-)%s*$", "%1")
+                    if foundOwner == trimmedOwner then
+                        OriginSquare1 = plot.OriginSquare.CFrame.Position
+                    elseif foundOwner == trimmedReceiver then
+                        OriginSquare2 = plot.OriginSquare.CFrame.Position
+                    end
+                end
+            end
+        end
+        if OriginSquare1 and OriginSquare2 then
+            local offsetFound = OriginSquare2 - OriginSquare1
+            X, Y, Z = offsetFound.X, offsetFound.Y, offsetFound.Z
+            print("Offset (Owner -> Receiver) =", X, Y, Z)
         else
-            clipFunc()
+            X, Y, Z = 0, 0, 0
+            warn("Tidak bisa menemukan OriginSquare base Owner atau Receiver!")
         end
     end
-})
-Fluent:AddInput(Tabs.Player, {
-    Title = "Input",
-    Default = "Default",
-    Placeholder = "Masukkan teks...",
-    Callback = function(text)
-        print("Input:", text)
+    GetOffset()
+    if X == 0 and Y == 0 and Z == 0 then
+        warn("Offset belum diatur dengan benar.")
+        return
+    end
+    Count = 0
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local PlaceStructure = ReplicatedStorage:FindFirstChild("PlaceStructure")
+    if not PlaceStructure then warn("PlaceStructure folder not found!") return end
+    local ClientPlacedStructure = PlaceStructure:FindFirstChild("ClientPlacedStructure")
+    if not ClientPlacedStructure then warn("ClientPlacedStructure event not found!") return end
+    local placementDelay = 0.2
+    local PlayerModels = game.Workspace:FindFirstChild("PlayerModels")
+    if not PlayerModels then warn("PlayerModels not found in Workspace!") return end
+
+    local function processObject(child, useBlueprint)
+        local ownerObj = child:FindFirstChild("Owner")
+        if not ownerObj then return end
+        local ownerStr = tostring(ownerObj.Value):gsub("^%s*(.-)%s*$", "%1")
+        if ownerStr == DesiredOwner then
+            Count = Count + 1
+            local itemName = child:FindFirstChild("ItemName") and child.ItemName.Value or child.Name
+            local blueprintClass = nil
+            if useBlueprint then
+                blueprintClass = child:FindFirstChild("BlueprintWoodClass") and child.BlueprintWoodClass.Value or nil
+            end
+            local mainCFrame
+            if child:FindFirstChild("MainCFrame") then
+                mainCFrame = child.MainCFrame.Value
+            elseif child:FindFirstChild("Main") and child.Main:IsA("BasePart") then
+                mainCFrame = child.Main.CFrame
+            end
+            if mainCFrame then
+                -- (Optional) saveCFrameToFile(mainCFrame)
+                local newCFrame = CFrame.new(mainCFrame.Position + Vector3.new(X, Y, Z)) * CFrame.Angles(mainCFrame:ToEulerAnglesXYZ())
+                print(">> Teleporting:", child.Name, "dari:", mainCFrame, "ke:", newCFrame)
+                for _, v in pairs(child:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.Anchored = true
+                        v.CanCollide = false
+                    end
+                end
+                task.wait(0.1)
+                local args = { itemName, newCFrame, game.Players.LocalPlayer, blueprintClass, child, true }
+                ClientPlacedStructure:FireServer(unpack(args))
+                task.wait(placementDelay + 0.2)
+                for _, v in pairs(child:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.Anchored = false
+                        v.CanCollide = true
+                    end
+                end
+                print("Teleported:", child.Name)
+            else
+                print(">> Tidak ada MainCFrame/Main part untuk:", child.Name)
+            end
+        end
+    end
+
+    local function isInCategory(n)
+        local Structures = { "Wall1","Wall1Corner","Wall1Short","Wall1ShortCorner","Wall1ShortThin",
+            "Wall1Tall","Wall1TallCorner","Wall1TallThin","Wall1Thin",
+            "Wall2","Wall2Corner","Wall2Short","Wall2ShortCorner","Wall2ShortThin",
+            "Wall2Tall","Wall2TallCorner","Wall2TallThin","Wall2Thin",
+            "Wall3","Wall3Corner","Wall3Tall","Wall3TallCorner","Wall3TallThin","Wall3Thin",
+            "Floor1","Floor1Large","Floor1Small","Floor1Tiny",
+            "Floor2","Floor2Large","Floor2Small","Floor2Tiny",
+            "Door1","Door2","Door3",
+            "Ladder1","Post","Stair1","Stair2",
+            "Wedge1","Wedge1_Thin","Wedge2","Wedge2_Thin","Wedge3","Wedge3_Thin",
+            "Wedge4","Wedge4_Thin","Wedge5","Wedge5_Thin","Wedge6","Wedge6_Thin",
+            "Wedge7","Wedge7_Thin","Wedge8","Wedge8_Thin","Wedge9","Wedge9_Thin",
+            "Wedge10","Wedge10_Thin"
+        }
+        local Furniture = { "Cabinet1","Cabinet1CornerTight","Cabinet1CornerWide","Cabinet1Thin",
+            "Chair1","CounterTop1","CounterTop1Sink","CounterTop1Thin",
+            "Table1","Table2",
+            "Painting1","Painting2","Painting3","Painting4","Painting5","Painting6","Painting7","Painting8","Painting9"
+        }
+        local Glass = { "GlassPane4","GlassPane3","GlassPane2","GlassPane1","GlassDoor1" }
+        local RedStone = { "LogSweeper","ConveyorFunnel","StraightConveyor","TightTurnConveyor","TiltConveyor",
+            "ConveyorSwitch","StraightSwitchConveyorRight","StraightSwitchConveyorLeft","Hatch",
+            "WoodChecker","WallLight1","WallLight2","Sawmill4L","ChopSaw","ClockSwitch","Lever0",
+            "PressurePlate","Refridgerator","Seat_Couch","Seat_Armchair","SignalSustain","Seat_Loveseat",
+            "GateAND","GateNOT","GateOR","GateXOR","SignalDelay","Laser","LaserReceiver",
+            "Dishwasher","Bed2","Bed1","Toilet","Pickup1","Stove"
+        }
+        return table.find(Structures, n) or table.find(Furniture, n) or table.find(Glass, n) or table.find(RedStone, n)
+    end
+
+    if PlayerModels then
+        if DoStructure then
+            local Structures = { "Wall1","Wall1Corner","Wall1Short","Wall1ShortCorner","Wall1ShortThin",
+                "Wall1Tall","Wall1TallCorner","Wall1TallThin","Wall1Thin",
+                "Wall2","Wall2Corner","Wall2Short","Wall2ShortCorner","Wall2ShortThin",
+                "Wall2Tall","Wall2TallCorner","Wall2TallThin","Wall2Thin",
+                "Wall3","Wall3Corner","Wall3Tall","Wall3TallCorner","Wall3TallThin","Wall3Thin",
+                "Floor1","Floor1Large","Floor1Small","Floor1Tiny",
+                "Floor2","Floor2Large","Floor2Small","Floor2Tiny",
+                "Door1","Door2","Door3",
+                "Ladder1","Post","Stair1","Stair2",
+                "Wedge1","Wedge1_Thin","Wedge2","Wedge2_Thin","Wedge3","Wedge3_Thin",
+                "Wedge4","Wedge4_Thin","Wedge5","Wedge5_Thin","Wedge6","Wedge6_Thin",
+                "Wedge7","Wedge7_Thin","Wedge8","Wedge8_Thin","Wedge9","Wedge9_Thin",
+                "Wedge10","Wedge10_Thin"
+            }
+            for _, sName in ipairs(Structures) do
+                for _, obj in ipairs(PlayerModels:GetChildren()) do
+                    if obj.Name == sName then
+                        processObject(obj, true)
+                    end
+                end
+            end
+        end
+        if DoFurniture then
+            local Furniture = { "Cabinet1","Cabinet1CornerTight","Cabinet1CornerWide","Cabinet1Thin",
+                "Chair1","CounterTop1","CounterTop1Sink","CounterTop1Thin",
+                "Table1","Table2",
+                "Painting1","Painting2","Painting3","Painting4","Painting5","Painting6","Painting7","Painting8","Painting9"
+            }
+            for _, fName in ipairs(Furniture) do
+                for _, obj in ipairs(PlayerModels:GetChildren()) do
+                    if obj.Name == fName then
+                        processObject(obj, true)
+                    end
+                end
+            end
+        end
+        if DoGlass then
+            local Glass = { "GlassPane4","GlassPane3","GlassPane2","GlassPane1","GlassDoor1" }
+            for _, gName in ipairs(Glass) do
+                for _, obj in ipairs(PlayerModels:GetChildren()) do
+                    if obj.Name == gName then
+                        processObject(obj, false)
+                    end
+                end
+            end
+        end
+        if DoRedStone then
+            local RedStone = { "LogSweeper","ConveyorFunnel","StraightConveyor","TightTurnConveyor","TiltConveyor",
+                "ConveyorSwitch","StraightSwitchConveyorRight","StraightSwitchConveyorLeft","Hatch",
+                "WoodChecker","WallLight1","WallLight2","Sawmill4L","ChopSaw","ClockSwitch","Lever0",
+                "PressurePlate","Refridgerator","Seat_Couch","Seat_Armchair","SignalSustain","Seat_Loveseat",
+                "GateAND","GateNOT","GateOR","GateXOR","SignalDelay","Laser","LaserReceiver",
+                "Dishwasher","Bed2","Bed1","Toilet","Pickup1","Stove"
+            }
+            for _, rName in ipairs(RedStone) do
+                for _, obj in ipairs(PlayerModels:GetChildren()) do
+                    if obj.Name == rName then
+                        processObject(obj, false)
+                    end
+                end
+            end
+        end
+        for _, child in ipairs(PlayerModels:GetChildren()) do
+            if child:IsA("Model") and not isInCategory(child.Name) then
+                processObject(child, false)
+            end
+        end
+        print("Total Teleported:", Count)
+    end
+end
+
+BaseMoverTab:AddButton({
+    Name = "Teleport Bases",
+    Callback = function()
+        print("=== MULAI TELEPORT (BUILDINGS/ITEMS) ===")
+        StartTeleportOptimized()
+        print("=== SELESAI TELEPORT (BUILDINGS/ITEMS) ===")
     end
 })
 
--- BASE MOVER TAB
-Fluent:AddInput(Tabs.BaseMover, {
-    Title = "Base Owner",
-    Default = "Username",
-    Placeholder = "Masukkan base owner",
-    Callback = function(txt)
-        DesiredOwner = txt
-        print("DesiredOwner:", txt)
-    end
+------------------------------------------------------------
+-- BASE DELETER TAB
+------------------------------------------------------------
+local BaseDeleterTab = Window:MakeTab({
+    Name = "Base Deleter",
+    Icon = "rbxassetid://7072720870"
 })
-Fluent:AddInput(Tabs.BaseMover, {
-    Title = "Base Receiver",
-    Default = "Username",
-    Placeholder = "Masukkan base receiver",
-    Callback = function(txt)
-        GivingTo = txt
-        print("GivingTo:", txt)
+
+local function deleteBase()
+    local Properties = game.Workspace.Properties
+    local trimmedOwner = (DesiredOwner or ""):gsub("^%s*(.-)%s*$", "%1")
+    for _, plot in ipairs(Properties:GetChildren()) do
+        if plot:FindFirstChild("Owner") then
+            local foundOwner = tostring(plot.Owner.Value):gsub("^%s*(.-)%s*$", "%1")
+            if foundOwner == trimmedOwner then
+                plot:Destroy()
+                print("✅ Base berhasil dihapus:", foundOwner)
+                return
+            end
+        end
     end
-})
-Fluent:AddButton(Tabs.BaseMover, {
-    Title = "Teleport Bases",
-    Callback = function()
-        print("=== MULAI TELEPORT BASES ===")
-        StartTeleportOptimized()
-        print("=== SELESAI TELEPORT BASES ===")
-    end
-})
-Fluent:AddButton(Tabs.BaseMover, {
-    Title = "Delete Base",
+    print("❌ Tidak menemukan base milik:", trimmedOwner)
+end
+
+BaseDeleterTab:AddButton({
+    Name = "Delete Base",
     Callback = function()
         deleteBase()
     end
 })
 
--- TELEPORTER TAB
-Fluent:AddInput(Tabs.Teleporter, {
-    Title = "Player to Teleport To",
+------------------------------------------------------------
+-- PLAYER TELEPORTER TAB
+------------------------------------------------------------
+local TeleporterTab = Window:MakeTab({
+    Name = "Teleporter",
+    Icon = "rbxassetid://7072719338"
+})
+
+TeleporterTab:AddTextBox({
+    Name = "Player to Teleport To",
     Default = "",
-    Placeholder = "Masukkan nama pemain",
     Callback = function(txt)
         TargetPlayer = txt
     end
 })
-Fluent:AddButton(Tabs.Teleporter, {
-    Title = "Teleport to Player",
+
+TeleporterTab:AddButton({
+    Name = "Teleport to Player",
     Callback = function()
-        teleportToPlayer(TargetPlayer)
+        local target = nil
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if string.lower(player.Name) == string.lower(TargetPlayer) then
+                target = player
+                break
+            end
+        end
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+            print("✅ Berhasil teleport ke:", target.Name)
+        else
+            print("❌ Tidak dapat menemukan pemain:", TargetPlayer)
+        end
     end
 })
 
+------------------------------------------------------------
+-- ITEM DUPLICATOR TAB
+------------------------------------------------------------
+local ItemDuplicatorTab = Window:MakeTab({
+    Name = "Item Duplicator",
+    Icon = "rbxassetid://7072720537"
+})
+
+local function duplicateItem()
+    local character = game.Players.LocalPlayer.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            local backpack = game.Players.LocalPlayer:FindFirstChild("Backpack")
+            if backpack then
+                for i = 1, 10 do
+                    local tool = backpack:FindFirstChildOfClass("Tool")
+                    if tool then
+                        local clone = tool:Clone()
+                        clone.Parent = game.Workspace
+                        if clone:FindFirstChild("Handle") then
+                            clone.Handle.CFrame = humanoidRootPart.CFrame + Vector3.new(math.random(-3,3), 1, math.random(-3,3))
+                        end
+                    end
+                end
+                print("✅ Berhasil menggandakan item!")
+            else
+                print("❌ Tidak ada item di Backpack!")
+            end
+        end
+    end
+end
+
+ItemDuplicatorTab:AddButton({
+    Name = "Duplicate Held Item",
+    Callback = function()
+        duplicateItem()
+    end
+})
+
+------------------------------------------------------------
 -- WOOD TAB
-Fluent:AddButton(Tabs.Wood, {
-    Title = "Set Target Coords",
-    Callback = function()
-        setTargetCoords()
-    end
+------------------------------------------------------------
+local WoodTab = Window:MakeTab({
+    Name = "Wood",
+    Icon = ""
 })
-Fluent:AddButton(Tabs.Wood, {
-    Title = "Select Planks",
+
+local Wood = WoodTab:AddSection({ Title = "Wood Teleport" })
+
+Wood:AddButton({
+    Name = "Set Target Coords",
     Callback = function()
-        selectPlanks()
-    end
-})
-Fluent:AddButton(Tabs.Wood, {
-    Title = "Teleport One Plank",
-    Callback = function()
-        print("Wood: Teleporting one plank...")
-        -- Ganti dengan logika teleport satu plank
-    end
-})
-Fluent:AddToggle(Tabs.Wood, {
-    Title = "Continuous Teleport",
-    Default = false,
-    Callback = function(state)
-        continuousWoodTeleport(state)
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            globalTargetCoords = player.Character.HumanoidRootPart.Position
+            print("✅ Target coordinates set to:", globalTargetCoords)
+        else
+            warn("⚠️ Player character atau HumanoidRootPart tidak ditemukan!")
+        end
     end
 })
 
--- ITEM TAB
-Fluent:AddButton(Tabs.Item, {
-    Title = "Select Item",
+Wood:AddButton({
+    Name = "Select Planks",
     Callback = function()
-        selectItems()
+        selectedPlanks = {}
+        for _, model in pairs(game.Workspace.PlayerModels:GetChildren()) do
+            if model:IsA("Model") and model.Name == "Plank" then
+                if not model.PrimaryPart then
+                    local possiblePrimaryPart = model:FindFirstChild("Main") or model:FindFirstChild("WoodSection") or model:FindFirstChildWhichIsA("BasePart")
+                    if possiblePrimaryPart then
+                        model.PrimaryPart = possiblePrimaryPart
+                    else
+                        print("⚠️ Plank tanpa PrimaryPart ditemukan:", model.Name)
+                    end
+                end
+                if model.PrimaryPart then
+                    table.insert(selectedPlanks, model)
+                end
+            end
+        end
+        print("🎯 Total plank yang dipilih:", #selectedPlanks)
     end
 })
-Fluent:AddButton(Tabs.Item, {
-    Title = "Teleport Item",
+
+Wood:AddButton({
+    Name = "Teleport One Plank",
     Callback = function()
-        print("Item: Teleporting one item...")
+        if isDraggingPlank then return end
+        isDraggingPlank = true
+        coroutine.wrap(function()
+            if #selectedPlanks == 0 then
+                print("⚠️ Tidak ada plank yang dipilih!")
+                isDraggingPlank = false
+                return
+            end
+            local remote = game:GetService("ReplicatedStorage").Interaction.ClientIsDragging
+            for _, plank in ipairs(selectedPlanks) do
+                local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - plank.PrimaryPart.Position).Magnitude
+                if distance <= woodMaxDistance then
+                    remote:FireServer(plank)
+                    task.wait(0.2)
+                    plank:SetPrimaryPartCFrame(CFrame.new(globalTargetCoords))
+                    task.wait(0.05)
+                    remote:FireServer(plank)
+                    break
+                end
+            end
+            isDraggingPlank = false
+        end)()
+    end
+})
+
+Wood:AddToggle({
+    Name = "Continuous Teleport",
+    Default = false,
+    Callback = function(isToggled)
+        if isToggled then
+            _G.continuousDraggingWood = true
+            coroutine.wrap(function()
+                while _G.continuousDraggingWood do
+                    for _, plank in ipairs(selectedPlanks) do
+                        local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - plank.PrimaryPart.Position).Magnitude
+                        if distance <= woodMaxDistance then
+                            game:GetService("ReplicatedStorage").Interaction.ClientIsDragging:FireServer(plank)
+                            task.wait(0.2)
+                            plank:SetPrimaryPartCFrame(CFrame.new(globalTargetCoords))
+                            task.wait(0.05)
+                            game:GetService("ReplicatedStorage").Interaction.ClientIsDragging:FireServer(plank)
+                        end
+                    end
+                    task.wait(0.05)
+                end
+            end)()
+        else
+            _G.continuousDraggingWood = false
+        end
+    end
+})
+
+------------------------------------------------------------
+-- ITEM TAB
+------------------------------------------------------------
+local ItemTab = Window:MakeTab({
+    Name = "Item",
+    Icon = ""
+})
+
+local Item = ItemTab:AddSection({ Title = "Item Teleport" })
+
+local selectedItems = {}
+Item:AddButton({
+    Name = "Select Item",
+    Callback = function()
+        selectedItems = {}
+        for _, model in pairs(game.Workspace.PlayerModels:GetChildren()) do
+            if model:IsA("Model") and model.Name ~= "Plank" then
+                local possiblePrimaryPart = model:FindFirstChild("Main") or model:FindFirstChild("WoodSection") or model:FindFirstChildWhichIsA("BasePart")
+                if possiblePrimaryPart then
+                    model.PrimaryPart = possiblePrimaryPart
+                    table.insert(selectedItems, model)
+                else
+                    print("Item without suitable PrimaryPart found:", model.Name)
+                end
+            end
+        end
+        print("Selected items:", #selectedItems)
+    end
+})
+
+local isDraggingItem = false
+local continuousDraggingItem = false
+local itemMaxDistance = 17
+local function DragAndMoveOneItem()
+    if isDraggingItem then return end
+    isDraggingItem = true
+    coroutine.wrap(function()
+        if #selectedItems == 0 then
+            warn("No items selected!")
+            isDraggingItem = false
+            return
+        end
+        local character = game.Players.LocalPlayer.Character
+        if not character or not character:FindFirstChild("HumanoidRootPart") then
+            warn("Player character or HumanoidRootPart not found!")
+            isDraggingItem = false
+            return
+        end
+        local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Interaction").ClientIsDragging
+        for _, item in ipairs(selectedItems) do
+            if item.PrimaryPart then
+                local itemPosition = item.PrimaryPart.Position
+                local distance = (character.HumanoidRootPart.Position - itemPosition).Magnitude
+                if distance <= itemMaxDistance then
+                    remote:FireServer(item)
+                    task.wait(0.15)
+                    item:SetPrimaryPartCFrame(CFrame.new(itemPosition + Vector3.new(179, 0, 322)))
+                    task.wait(0.05)
+                    remote:FireServer(item)
+                    task.wait()
+                    break
+                end
+            end
+        end
+        isDraggingItem = false
+    end)()
+end
+
+Item:AddButton({
+    Name = "Teleport Item",
+    Callback = function()
         DragAndMoveOneItem()
     end
 })
-Fluent:AddToggle(Tabs.Item, {
-    Title = "Continuous Teleport",
+
+Item:AddToggle({
+    Name = "Continuous Teleport",
     Default = false,
-    Callback = function(state)
-        continuousItemTeleport(state)
+    Callback = function(isToggled)
+        if isToggled then
+            continuousDraggingItem = true
+            coroutine.wrap(function()
+                while continuousDraggingItem do
+                    DragAndMoveOneItem()
+                    task.wait(0.05)
+                end
+            end)()
+        else
+            continuousDraggingItem = false
+            print("Continuous teleport stopped!")
+        end
     end
 })
 
+------------------------------------------------------------
 -- SLOT TAB
-Fluent:AddButton(Tabs.Slot, {
-    Title = "Free Land",
-    Callback = function()
-        buyFreeLand()
-    end
+------------------------------------------------------------
+local SlotTab = Window:MakeTab({
+    Name = "Slot",
+    Icon = ""
 })
-Fluent:AddButton(Tabs.Slot, {
-    Title = "Expand Land",
+
+local Property = SlotTab:AddSection({ Title = "Property" })
+
+Property:AddButton({
+    Name = "Free Land",
     Callback = function()
-        expandLand()
-    end
-})
-Fluent:AddButton(Tabs.Slot, {
-    Title = "Sell Sign",
-    Callback = function()
-        print("Slot: Sell sign executed")
-        -- Ganti dengan logika sell sign
+        for i, v in pairs(game.Workspace.Properties:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == nil then
+                game:GetService("ReplicatedStorage").PropertyPurchasing.ClientPurchasedProperty:FireServer(v, v.OriginSquare.Position)
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.OriginSquare.CFrame + Vector3.new(0, 2, 0)
+                break
+            end
+        end
     end
 })
 
+Property:AddButton({
+    Name = "Max Land",
+    Callback = function()
+        for s, d in pairs(workspace.Properties:GetChildren()) do
+            if d:FindFirstChild("Owner") and d:FindFirstChild("OriginSquare") and d.Owner.Value == game.Players.LocalPlayer then
+                local PlotPos = d.OriginSquare.Position
+                local RP = game:GetService("ReplicatedStorage").PropertyPurchasing
+                RP.ClientExpandedProperty:FireServer(d, CFrame.new(PlotPos.X + 40, PlotPos.Y, PlotPos.Z))
+                RP.ClientExpandedProperty:FireServer(d, CFrame.new(PlotPos.X - 40, PlotPos.Y, PlotPos.Z))
+                RP.ClientExpandedProperty:FireServer(d, CFrame.new(PlotPos.X, PlotPos.Y, PlotPos.Z + 40))
+                RP.ClientExpandedProperty:FireServer(d, CFrame.new(PlotPos.X, PlotPos.Y, PlotPos.Z - 40))
+                -- Tambahkan pemanggilan lain jika perlu
+            end
+        end
+    end
+})
+
+Property:AddButton({
+    Name = "Sell Sign",
+    Callback = function()
+        for i, v in pairs(game.Workspace.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == game.Players.LocalPlayer then
+                if v:FindFirstChild("ItemName") and v.ItemName.Value == "PropertySoldSign" then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(v.Main.CFrame.p) + Vector3.new(0, 0, 2)
+                    game:GetService("ReplicatedStorage").Interaction.ClientInteracted:FireServer(v, "Take down sold sign")
+                    for i = 1, 30 do
+                        game:GetService("ReplicatedStorage").Interaction.ClientIsDragging:FireServer(v)
+                        v.Main.CFrame = CFrame.new(314.54, -0.5, 86.823)
+                        task.wait()
+                    end
+                end
+            end
+        end
+    end
+})
+
+------------------------------------------------------------
 -- WORLD TAB
-Fluent:AddButton(Tabs.World, {
-    Title = "Better Graphics",
-    Callback = function()
-        print("World: Better Graphics activated")
-        -- Ganti dengan logika better graphics
-    end
+------------------------------------------------------------
+local WorldTab = Window:MakeTab({
+    Name = "World",
+    Icon = ""
 })
-Fluent:AddButton(Tabs.World, {
-    Title = "Remove Fog",
+
+local World = WorldTab:AddSection({ Title = "Misc" })
+
+World:AddButton({
+    Name = "Better Graphics",
     Callback = function()
-        removeFog()
-    end
-})
-Fluent:AddToggle(Tabs.World, {
-    Title = "Day Mode",
-    Default = false,
-    Callback = function(state)
-        setDayMode(state)
+        local Lighting = game.Lighting
+        local ColorCorrection = game.Lighting.ColorCorrection
+        local Blur = Instance.new("BlurEffect")
+        local SunRays = Instance.new("SunRaysEffect")
+        local Bloom = Instance.new("BloomEffect")
+      
+        Blur.Parent = Lighting
+        SunRays.Parent = Lighting
+        Bloom.Parent = Lighting
+      
+        Blur.Enabled = true
+        Blur.Size = 3
+      
+        SunRays.Enabled = true
+        SunRays.Intensity = 0.2
+        SunRays.Spread = 1
+      
+        Bloom.Enabled = true
+        Bloom.Intensity = 1
+        Bloom.Size = 32
+        Bloom.Threshold = 1
+        
+        Lighting.FogColor = Color3.fromRGB(120, 150, 200)
+        Lighting.GeographicLatitude = 500
+        Lighting.Brightness = 0.1
+        Lighting.FogEnd = 750
+        Lighting.FogStart = 0
+        Lighting.OutdoorAmbient = Color3.fromRGB(112, 117, 128)
+        
+        ColorCorrection.Brightness = 0.1
+        ColorCorrection.Contrast = 0.15
+        ColorCorrection.Enabled = true
+        ColorCorrection.Saturation = 0.25
+        ColorCorrection.TintColor = Color3.fromRGB(255, 222, 211)
+        
+        Lighting.Owner:Destroy()
+        Lighting.Spook:Destroy()
+        Lighting.SunPos:Destroy()
     end
 })
 
--- SETTINGS TAB
-Fluent:AddButton(Tabs.Settings, {
-    Title = "Destroy GUI",
+World:AddButton({
+    Name = "Remove Fog",
     Callback = function()
-        Window.ScreenGui:Destroy()
-        print("GUI destroyed!")
+        game.Lighting.FogStart = 9999
+        game.Lighting.FogEnd = 9999
     end
 })
-Fluent:AddButton(Tabs.Settings, {
-    Title = "Reset Character",
+
+World:AddToggle({
+    Name = "Day",
+    Default = false,
+    Callback = function(isToggled)
+        Day = isToggled
+    end
+})
+
+local lighting = game:GetService("Lighting")
+function updateLighting()
+    lighting.TimeOfDay = "12:00:00"
+    lighting.SunPos.Value = 1
+    lighting.Ambient = Color3.new(1, 1, 1)
+    lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
+    lighting.ColorShift_Top = Color3.new(1, 1, 1)
+end
+game.Lighting.Changed:Connect(function()
+    if Day then
+        updateLighting()
+    end
+end)
+
+------------------------------------------------------------
+-- SETTINGS TAB
+------------------------------------------------------------
+local SettingsTab = Window:MakeTab({
+    Name = "Settings",
+    Icon = "settings"
+})
+
+SettingsTab:AddButton({
+    Name = "Destroy GUI",
+    Callback = function()
+        print("❌ GUI telah dihancurkan!")
+        -- Jika Fluent menyediakan fungsi destroy, panggil di sini
+    end
+})
+
+SettingsTab:AddButton({
+    Name = "Reset Character",
     Callback = function()
         game.Players.LocalPlayer.Character:BreakJoints()
     end
 })
 
 ------------------------------------------------------------
--- SaveManager & InterfaceManager (Opsional; jika error, komentar baris BuildInterfaceSection & BuildConfigSection)
+-- Konfigurasi SaveManager & InterfaceManager (Opsional)
 ------------------------------------------------------------
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 InterfaceManager:SetFolder("LYOHUB")
 SaveManager:SetFolder("LYOHUB/specific-game")
--- Jika muncul error, komentar baris di bawah ini:
--- InterfaceManager:BuildInterfaceSection(Tabs.Settings)
--- SaveManager:BuildConfigSection(Tabs.Settings)
+InterfaceManager:BuildInterfaceSection(SettingsTab)
+SaveManager:BuildConfigSection(SettingsTab)
 
 ------------------------------------------------------------
--- Notifikasi Saat Script Dimuat & Pilih Tab Pertama
+-- Notifikasi saat script dimuat
 ------------------------------------------------------------
 Fluent:Notify({
     Title = "LYO HUB Loaded!",
-    Content = "Successfully loaded the script.",
+    Content = "Successfully Loaded the Script",
     Duration = 5
 })
+
+-- Pilih tab pertama agar konten muncul
 Window:SelectTab(1)
