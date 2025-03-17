@@ -1,5 +1,4 @@
--- Fluent UI Library untuk Roblox dengan semua fungsi yang diperlukan
-
+-- Fluent UI Library untuk Roblox
 local FluentUI = {}
 
 function FluentUI:CreateWindow(settings)
