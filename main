@@ -125,19 +125,18 @@ function UIAnces:CreateWindow(title)
 
             section.Container = container
 
--- Fungsi untuk menambahkan Label
-function section:Label(text)
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Parent = self.Container
-    label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1,0,0,20)
-    label.Font = Enum.Font.Gotham
-    label.Text = text or ""  -- ← Tanpa backslash
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.TextSize = 14
-end
-
+            -- Fungsi untuk menambahkan Label
+            function section:Label(text)
+                local label = Instance.new("TextLabel")
+                label.Name = "Label"
+                label.Parent = self.Container
+                label.BackgroundTransparency = 1
+                label.Size = UDim2.new(1,0,0,20)
+                label.Font = Enum.Font.Gotham
+                label.Text = text or ""
+                label.TextColor3 = Color3.fromRGB(255,255,255)
+                label.TextSize = 14
+            end
 
             -- Fungsi untuk menambahkan Button
             function section:Button(text, callback)
@@ -147,7 +146,7 @@ end
                 btn.Size = UDim2.new(1,0,0,25)
                 btn.BackgroundColor3 = Color3.fromRGB(18,18,18)
                 btn.Font = Enum.Font.GothamBold
-                btn.Text = text or ""  -- ← Tanpa backslash
+                btn.Text = text or ""
                 btn.TextColor3 = Color3.fromRGB(255,255,255)
                 btn.TextSize = 14
                 btn.AutoButtonColor = false
@@ -163,13 +162,13 @@ end
                 toggle.BackgroundColor3 = Color3.fromRGB(18,18,18)
                 toggle.Font = Enum.Font.GothamBold
                 local state = default or false
-                toggle.Text = text .. \" : \" .. tostring(state)
+                toggle.Text = text .. ": " .. tostring(state)
                 toggle.TextColor3 = Color3.fromRGB(255,255,255)
                 toggle.TextSize = 14
                 toggle.AutoButtonColor = false
                 toggle.MouseButton1Click:Connect(function()
                     state = not state
-                    toggle.Text = text .. \" : \" .. tostring(state)
+                    toggle.Text = text .. ": " .. tostring(state)
                     if callback then callback(state) end
                 end)
             end
@@ -191,19 +190,19 @@ end
                 sliderLabel.Position = UDim2.new(0,5,0,0)
                 sliderLabel.Size = UDim2.new(0.4,0,1,0)
                 sliderLabel.Font = Enum.Font.Gotham
-                sliderLabel.Text = text .. \": \" .. default
+                sliderLabel.Text = text .. ": " .. default
                 sliderLabel.TextColor3 = Color3.fromRGB(255,255,255)
                 sliderLabel.TextSize = 14
 
                 local sliderBG = Instance.new("Frame")
-                sliderBG.Name = \"SliderBG\"
+                sliderBG.Name = "SliderBG"
                 sliderBG.Parent = sliderFrame
                 sliderBG.BackgroundColor3 = Color3.fromRGB(30,30,30)
                 sliderBG.Position = UDim2.new(0.45,0,0.2,0)
                 sliderBG.Size = UDim2.new(0.5,0,0.6,0)
 
                 local sliderFill = Instance.new("Frame")
-                sliderFill.Name = \"SliderFill\"
+                sliderFill.Name = "SliderFill"
                 sliderFill.Parent = sliderBG
                 sliderFill.BackgroundColor3 = Color3.fromRGB(0,122,255)
                 sliderFill.Size = UDim2.new((default - min)/(max - min),0,1,0)
@@ -214,7 +213,23 @@ end
                             local mousePos = UserInputService:GetMouseLocation().X - sliderBG.AbsolutePosition.X
                             local newScale = math.clamp(mousePos/sliderBG.AbsoluteSize.X, 0, 1)
                             sliderFill.Size = UDim2.new(newScale, 0, 1, 0)
-                            local value = math.floor(min + newScale*(max - min))  -- Bulatkan nilai\n                            sliderLabel.Text = text .. \": \" .. value\n                            if callback then callback(value) end\n                        end\n                        moveSlider()\n                        local moveCon; moveCon = UserInputService.InputChanged:Connect(function(input)\n                            if input.UserInputType == Enum.UserInputType.MouseMovement then\n                                moveSlider()\n                            end\n                        end)\n                        input.Changed:Connect(function()\n                            if input.UserInputState == Enum.UserInputState.End then\n                                moveCon:Disconnect()\n                            end\n                        end)\n                    end\n                end)
+                            local value = math.floor(min + newScale*(max - min))  -- Bulatkan nilai
+                            sliderLabel.Text = text .. ": " .. value
+                            if callback then callback(value) end
+                        end
+                        moveSlider()
+                        local moveCon; moveCon = UserInputService.InputChanged:Connect(function(inp)
+                            if inp.UserInputType == Enum.UserInputType.MouseMovement then
+                                moveSlider()
+                            end
+                        end)
+                        input.Changed:Connect(function()
+                            if input.UserInputState == Enum.UserInputState.End then
+                                moveCon:Disconnect()
+                            end
+                        end)
+                    end
+                end)
             end
 
             -- Fungsi untuk menambahkan TextBox
@@ -225,12 +240,14 @@ end
                 tb.Size = UDim2.new(1,0,0,25)
                 tb.BackgroundColor3 = Color3.fromRGB(18,18,18)
                 tb.Font = Enum.Font.Gotham
-                tb.Text = text or  ""
-                tb.PlaceholderText = placeholder or \"\"
+                tb.Text = text or ""
+                tb.PlaceholderText = placeholder or ""
                 tb.TextColor3 = Color3.fromRGB(255,255,255)
                 tb.TextSize = 14
                 tb.ClearTextOnFocus = false
-                tb.FocusLost:Connect(function()\n                    if callback then callback(tb.Text) end\n                end)
+                tb.FocusLost:Connect(function()
+                    if callback then callback(tb.Text) end
+                end)
             end
 
             return section
