@@ -225,7 +225,7 @@ end
                 tb.Size = UDim2.new(1,0,0,25)
                 tb.BackgroundColor3 = Color3.fromRGB(18,18,18)
                 tb.Font = Enum.Font.Gotham
-                tb.Text = text or \"\"
+                tb.Text = text or  ""
                 tb.PlaceholderText = placeholder or \"\"
                 tb.TextColor3 = Color3.fromRGB(255,255,255)
                 tb.TextSize = 14
