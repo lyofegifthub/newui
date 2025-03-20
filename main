@@ -73,10 +73,13 @@ function UIAnces:CreateWindow(title)
         page.Size = UDim2.new(0.75,0,1,0)
         page.CanvasSize = UDim2.new(0,0,0,0)
         page.ScrollBarThickness = 0
+
         local pageLayout = Instance.new("UIListLayout", page)
         pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         pageLayout.Padding = UDim.new(0,5)
-        page.Visible = (#UIAnces.Tabs == 0) -- Tab pertama tampil
+
+        -- Jika ini tab pertama, buat visible
+        page.Visible = (#UIAnces.Tabs == 0)
 
         tab.Page = page
         tab.Sections = {}
@@ -98,6 +101,7 @@ function UIAnces:CreateWindow(title)
             sectionFrame.Parent = page
             sectionFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
             sectionFrame.Size = UDim2.new(1, -10, 0, 40)
+
             local sectionCorner = Instance.new("UICorner", sectionFrame)
             sectionCorner.CornerRadius = UDim.new(0,5)
 
@@ -112,13 +116,13 @@ function UIAnces:CreateWindow(title)
             sectionTitle.TextColor3 = Color3.fromRGB(153,255,238)
             sectionTitle.TextSize = 14
 
-            -- Container untuk elemen tambahan (berukuran dinamis)
             local container = Instance.new("Frame")
             container.Name = "Container"
             container.Parent = sectionFrame
             container.BackgroundTransparency = 1
             container.Position = UDim2.new(0,5,0,25)
             container.Size = UDim2.new(1, -10, 0, 15)
+
             local containerLayout = Instance.new("UIListLayout", container)
             containerLayout.SortOrder = Enum.SortOrder.LayoutOrder
             containerLayout.Padding = UDim.new(0,3)
@@ -166,10 +170,13 @@ function UIAnces:CreateWindow(title)
                 toggle.TextColor3 = Color3.fromRGB(255,255,255)
                 toggle.TextSize = 14
                 toggle.AutoButtonColor = false
+
                 toggle.MouseButton1Click:Connect(function()
                     state = not state
                     toggle.Text = text .. ": " .. tostring(state)
-                    if callback then callback(state) end
+                    if callback then
+                        callback(state)
+                    end
                 end)
             end
 
@@ -180,6 +187,7 @@ function UIAnces:CreateWindow(title)
                 sliderFrame.Parent = self.Container
                 sliderFrame.Size = UDim2.new(1,0,0,25)
                 sliderFrame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+
                 local sliderCorner = Instance.new("UICorner", sliderFrame)
                 sliderCorner.CornerRadius = UDim.new(0,5)
 
@@ -205,27 +213,35 @@ function UIAnces:CreateWindow(title)
                 sliderFill.Name = "SliderFill"
                 sliderFill.Parent = sliderBG
                 sliderFill.BackgroundColor3 = Color3.fromRGB(0,122,255)
-                sliderFill.Size = UDim2.new((default - min)/(max - min),0,1,0)
+                local initialScale = (default - min) / (max - min)
+                sliderFill.Size = UDim2.new(initialScale, 0, 1, 0)
 
                 sliderBG.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
                         local function moveSlider()
                             local mousePos = UserInputService:GetMouseLocation().X - sliderBG.AbsolutePosition.X
-                            local newScale = math.clamp(mousePos/sliderBG.AbsoluteSize.X, 0, 1)
+                            local newScale = math.clamp(mousePos / sliderBG.AbsoluteSize.X, 0, 1)
                             sliderFill.Size = UDim2.new(newScale, 0, 1, 0)
-                            local value = math.floor(min + newScale*(max - min))  -- Bulatkan nilai
+                            local value = math.floor(min + newScale * (max - min))
                             sliderLabel.Text = text .. ": " .. value
-                            if callback then callback(value) end
+                            if callback then
+                                callback(value)
+                            end
                         end
                         moveSlider()
-                        local moveCon; moveCon = UserInputService.InputChanged:Connect(function(inp)
+
+                        local moveCon
+                        moveCon = UserInputService.InputChanged:Connect(function(inp)
                             if inp.UserInputType == Enum.UserInputType.MouseMovement then
                                 moveSlider()
                             end
                         end)
+
                         input.Changed:Connect(function()
                             if input.UserInputState == Enum.UserInputState.End then
-                                moveCon:Disconnect()
+                                if moveCon then
+                                    moveCon:Disconnect()
+                                end
                             end
                         end)
                     end
@@ -246,7 +262,9 @@ function UIAnces:CreateWindow(title)
                 tb.TextSize = 14
                 tb.ClearTextOnFocus = false
                 tb.FocusLost:Connect(function()
-                    if callback then callback(tb.Text) end
+                    if callback then
+                        callback(tb.Text)
+                    end
                 end)
             end
 
@@ -257,7 +275,7 @@ function UIAnces:CreateWindow(title)
         return tab
     end
 
-    window.Tab = function(self, tabName) -- Memudahkan akses tab yang sudah dibuat
+    window.Tab = function(self, tabName)
         for _, tab in ipairs(UIAnces.Tabs) do
             if tab.Name == tabName then
                 return tab
