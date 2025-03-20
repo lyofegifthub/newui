@@ -125,18 +125,19 @@ function UIAnces:CreateWindow(title)
 
             section.Container = container
 
-            -- Fungsi untuk menambahkan Label
-            function section:Label(text)
-                local label = Instance.new("TextLabel")
-                label.Name = "Label"
-                label.Parent = self.Container
-                label.BackgroundTransparency = 1
-                label.Size = UDim2.new(1,0,0,20)
-                label.Font = Enum.Font.Gotham
-                label.Text = text or \"\"
-                label.TextColor3 = Color3.fromRGB(255,255,255)
-                label.TextSize = 14
-            end
+-- Fungsi untuk menambahkan Label
+function section:Label(text)
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = self.Container
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1,0,0,20)
+    label.Font = Enum.Font.Gotham
+    label.Text = text or ""  -- ← Tanpa backslash
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.TextSize = 14
+end
+
 
             -- Fungsi untuk menambahkan Button
             function section:Button(text, callback)
